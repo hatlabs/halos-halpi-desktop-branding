@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+
+# Diversions are removed only on remove/purge (and abort-install / disappear,
+# the dpkg lifecycle states that effectively undo the install). abort-upgrade
+# and failed-upgrade are intentionally not listed: across our own upgrades the
+# diversions must persist, otherwise rpd-common's conffile would briefly
+# resurface at the canonical path between postrm-of-old and preinst-of-new.
+case "$1" in
+    remove|purge|abort-install|disappear)
+        for n in 0 1; do
+            f="/etc/xdg/pcmanfm/default/desktop-items-${n}.conf"
+            dpkg-divert --package halos-halpi-desktop-branding --remove --rename "${f}" || true
+        done
+        ;;
+esac
+
+#DEBHELPER#

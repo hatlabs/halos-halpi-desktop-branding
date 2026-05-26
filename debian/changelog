@@ -1,0 +1,10 @@
+halos-halpi-desktop-branding (0.1.0) unstable; urgency=medium
+
+  * Initial release.
+  * Ship Carta Marina HALPI2 wallpaper as /usr/share/halos/wallpapers/halpi.jpg.
+  * Override upstream rpd-common pcmanfm default via dpkg-divert on
+    /etc/xdg/pcmanfm/default/desktop-items-{0,1}.conf.
+  * Provide/Conflict/Replace virtual halos-desktop-wallpaper to coexist
+    cleanly with halos-desktop-branding.
+
+ -- Matti Airas <matti.airas@hatlabs.fi>  Wed, 27 May 2026 00:12:28 +0300

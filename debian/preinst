@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+# Divert rpd-common's pcmanfm desktop-items conffiles so this package can
+# own them at the canonical paths. Future rpd-common upgrades write to the
+# .upstream diverted paths instead of clobbering our defaults.
+for n in 0 1; do
+    f="/etc/xdg/pcmanfm/default/desktop-items-${n}.conf"
+    if ! dpkg-divert --list "${f}" | grep -q halos-halpi-desktop-branding; then
+        dpkg-divert --package halos-halpi-desktop-branding --add --rename \
+            --divert "${f}.upstream" "${f}"
+    fi
+done
+
+#DEBHELPER#
