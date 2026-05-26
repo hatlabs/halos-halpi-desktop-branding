@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+# pcmanfm reads a separate desktop-items-N.conf per monitor (N=0 primary,
+# N=1 secondary). Both must point at the same HALPI2 wallpaper, so we keep
+# one source file (desktop-items-0.conf) and generate the rest at build
+# time rather than maintaining N byte-identical copies in the tree.
+GENERATED_CONFFILES = etc/xdg/pcmanfm/default/desktop-items-1.conf
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cp etc/xdg/pcmanfm/default/desktop-items-0.conf \
+	   etc/xdg/pcmanfm/default/desktop-items-1.conf
+
+override_dh_auto_clean:
+	rm -f $(GENERATED_CONFFILES)
+	dh_auto_clean
