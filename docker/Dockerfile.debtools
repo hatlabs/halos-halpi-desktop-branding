@@ -8,7 +8,10 @@ RUN apt-get update && apt-get install -y \
     devscripts \
     lintian \
     bumpversion \
-    && rm -rf /var/lib/apt/lists/*
+    git \
+    git-lfs \
+    && rm -rf /var/lib/apt/lists/* \
+    && git lfs install --system --skip-repo
 
 WORKDIR /workspace
 

@@ -12,7 +12,7 @@ When using Claude Code or other AI assistants, work from the halos workspace rep
 
 HALPI2-branded default desktop wallpaper for HaLOS HALPI2 desktop variants. Ships:
 
-- **`/usr/share/halos/wallpapers/halpi.jpg`** — the HALPI2 wallpaper image (a colored treatment of Olaus Magnus's 1539 Carta Marina).
+- **`/usr/share/halos/wallpapers/halpi.jpg`** — the wallpaper image.
 - **`/etc/xdg/pcmanfm/default/desktop-items-{0,1}.conf`** — pcmanfm system-wide desktop configuration, pointing at the wallpaper.
 
 The two conffiles are installed at paths owned by the upstream `rpd-common` package. `debian/preinst` adds a `dpkg-divert` for each, redirecting `rpd-common`'s versions to `.upstream` so future upgrades of `rpd-common` do not clobber our default. `debian/postrm` reverses the diversions on `remove`/`purge`.

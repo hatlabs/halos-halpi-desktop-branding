@@ -5,4 +5,8 @@ services:
       dockerfile: Dockerfile.debtools
     volumes:
       - ..:/workspace
+      - ${HOME}/.gitconfig:/root/.gitconfig:ro
     working_dir: /workspace
+    environment:
+      DEBEMAIL: ${DEBEMAIL:-}
+      DEBFULLNAME: ${DEBFULLNAME:-}
