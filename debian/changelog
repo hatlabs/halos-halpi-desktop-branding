@@ -1,3 +1,9 @@
+halos-halpi-desktop-branding (0.1.1) unstable; urgency=medium
+
+  * Release 0.1.1
+
+ -- Matti Airas <matti.airas@hatlabs.fi>  Wed, 27 May 2026 14:50:53 +0000
+
 halos-halpi-desktop-branding (0.1.0) unstable; urgency=medium
 
   * Initial release.
