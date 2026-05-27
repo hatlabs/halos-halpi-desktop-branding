@@ -13,16 +13,19 @@ Depends: ${misc:Depends},
          rpd-common
 Provides: halos-desktop-wallpaper
 Conflicts: halos-desktop-wallpaper
-Replaces: halos-desktop-wallpaper
+Replaces: halos-desktop-wallpaper,
+          rpd-common
 Description: HALPI2 branded default desktop wallpaper
  This package provides the HALPI2-branded default desktop wallpaper for
- HaLOS HALPI2 desktop variants, overriding the upstream Raspberry Pi OS
- default (shipped via the rpd-common package) using dpkg-divert on the
- pcmanfm system-wide desktop-items conffiles. Per-user wallpaper choices
- take precedence over this default.
+ HaLOS HALPI2 desktop variants. It ships pcmanfm system-wide
+ desktop-items conffiles that override the upstream Raspberry Pi OS
+ defaults at /etc/xdg/pcmanfm/default/. Per-user wallpaper choices in
+ ~/.config/pcmanfm/ take precedence over this default.
  .
- Exclusivity with the generic HaLOS branding (halos-desktop-branding) is
- enforced via the virtual package halos-desktop-wallpaper: only one
- provider can be installed at a time. Pi-gen pre-installs this package on
- HALPI2 desktop builds so the HALPI2-specific artwork wins over the
- generic default.
+ File ownership at the canonical paths is taken from rpd-common via
+ Replaces:; rpd-common stays installed and its other files are
+ unaffected. Exclusivity with the generic HaLOS branding
+ (halos-desktop-branding) is enforced via the virtual package
+ halos-desktop-wallpaper: only one provider can be installed at a
+ time. Pi-gen pre-installs this package on HALPI2 desktop builds so
+ the HALPI2-specific artwork wins over the generic default.

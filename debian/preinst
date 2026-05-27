@@ -1,15 +1,30 @@
 #!/bin/sh
 set -e
 
-# Divert rpd-common's pcmanfm desktop-items conffiles so this package can
-# own them at the canonical paths. Future rpd-common upgrades write to the
-# .upstream diverted paths instead of clobbering our defaults.
+# Migration from the original dpkg-divert packaging.
+#
+# Earlier versions of halos-desktop-branding and halos-halpi-desktop-
+# branding diverted /etc/xdg/pcmanfm/default/desktop-items-{0,1}.conf
+# in their own preinst, and removed the diversion in postrm. That
+# approach had multiple defects (see closed PRs #5 of either repo for
+# the history) and is replaced here by `Replaces: rpd-common`, which
+# lets dpkg own the file directly with no maintainer-script
+# coordination between siblings.
+#
+# Tear down any divert records left behind by the old packaging so
+# the new file ownership takes effect cleanly. Safe to keep in place
+# indefinitely: it is a no-op on devices that were never on the old
+# packaging.
+
 for n in 0 1; do
     f="/etc/xdg/pcmanfm/default/desktop-items-${n}.conf"
-    if ! dpkg-divert --list "${f}" | grep -q halos-halpi-desktop-branding; then
-        dpkg-divert --package halos-halpi-desktop-branding --add --rename \
-            --divert "${f}.upstream" "${f}"
-    fi
+    for pkg in halos-desktop-branding halos-halpi-desktop-branding; do
+        if dpkg-divert --list "${f}" | grep -q "by ${pkg}$"; then
+            dpkg-divert --package "${pkg}" --remove --no-rename "${f}"
+        fi
+    done
+    # Discard any orphan .upstream copy from the old packaging.
+    rm -f "${f}.upstream"
 done
 
 #DEBHELPER#
