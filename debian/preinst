@@ -33,11 +33,23 @@ PKG=halos-halpi-desktop-branding
 
 for n in 0 1; do
     f="/etc/xdg/pcmanfm/default/desktop-items-${n}.conf"
+    sibling_cleared=0
     if dpkg-divert --list "${f}" | grep -q "by ${SIBLING}$"; then
         dpkg-divert --package "${SIBLING}" --remove --no-rename "${f}"
+        sibling_cleared=1
     fi
     if ! dpkg-divert --list "${f}" | grep -q "by ${PKG}$"; then
-        if [ -e "${f}" ] && [ ! -e "${f}.upstream" ]; then
+        # The manual mv only makes sense for fresh installs where the
+        # file at canonical is rpd-common's own. When we just cleared a
+        # sibling provider's diversion, the file at canonical is the
+        # sibling's conffile, not rpd-common's — moving it to .upstream
+        # would write the wrong content for a future purge to restore.
+        # If the sibling was a modern install, .upstream already holds
+        # rpd-common's content (preserved here); if it was a legacy
+        # install, .upstream is missing and there's nothing we can do
+        # — rpd-common's original was lost when the sibling went in.
+        if [ "$sibling_cleared" = 0 ] \
+            && [ -e "${f}" ] && [ ! -e "${f}.upstream" ]; then
             mv "${f}" "${f}.upstream"
         fi
         dpkg-divert --package "${PKG}" --add --no-rename \
