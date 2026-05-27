@@ -50,7 +50,16 @@ function bumpversion {
   #@ Category: Debian
   local part="${1:-patch}"
   echo "📈 Bumping ${part} version..."
-  debtools bash -c "bumpversion ${part} && dch -v \$(cat VERSION) -D unstable --force-distribution 'Release \$(cat VERSION)'"
+  DEBFULLNAME="$(git config --get user.name)" \
+  DEBEMAIL="$(git config --get user.email)" \
+    debtools bash -c "
+      set -euo pipefail
+      bumpversion ${part}
+      next=\$(cat VERSION)
+      dch -v \"\$next\" -D unstable --force-distribution \"Release \$next\"
+      git add debian/changelog
+      git commit --amend --no-edit
+    "
 }
 
 ################################################################################
