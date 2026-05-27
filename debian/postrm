@@ -1,16 +1,59 @@
 #!/bin/sh
 set -e
 
-# Diversions are removed only on remove/purge (and abort-install / disappear,
-# the dpkg lifecycle states that effectively undo the install). abort-upgrade
-# and failed-upgrade are intentionally not listed: across our own upgrades the
-# diversions must persist, otherwise rpd-common's conffile would briefly
-# resurface at the canonical path between postrm-of-old and preinst-of-new.
+# Diversion teardown is intentionally limited to lifecycle states where
+# the conffile at the canonical path is gone (purge) or where we are
+# rolling back our own failed install (abort-install / disappear).
+#
+# - purge: dpkg has already removed our conffile, so the canonical path
+#   is free for rpd-common's original to be restored. We use
+#   `--no-rename` + manual `mv` instead of `dpkg-divert --remove
+#   --rename`, for two reasons:
+#     * a sibling provider's preinst may have already removed our
+#       diversion (Conflict-driven swap), leaving us in `rc` state with
+#       no divert record to clear;
+#     * legacy installs created with the original buggy preinst never
+#       got rpd-common's file into .upstream, so the rename would fail
+#       with "rename involves overwriting different file".
+# - abort-install / disappear: roll back as if we never installed.
+# - remove (plain, including the Conflict-driven swap case where apt
+#   calls us with `$1=remove` and no `in-favour`): deliberately a
+#   no-op. Dpkg keeps our conffile at canonical, so a real rename of
+#   .upstream over it would fail. Two consequences:
+#     1. After plain `apt remove`, the system stays HALPI2-branded
+#        until the user runs `apt purge` (matches normal Debian
+#        conventions for unpurged removals).
+#     2. The diversion record stays attributed to this package until
+#        purge. A sibling provider of halos-desktop-wallpaper (e.g.
+#        halos-desktop-branding) handles the orphan in its own preinst
+#        before adding its diversion.
+# - upgrade / failed-upgrade / abort-upgrade: deliberately not handled;
+#   the diversion must persist across our own upgrades, otherwise
+#   rpd-common's conffile would briefly resurface between postrm-of-old
+#   and preinst-of-new.
+
 case "$1" in
-    remove|purge|abort-install|disappear)
+    purge)
         for n in 0 1; do
             f="/etc/xdg/pcmanfm/default/desktop-items-${n}.conf"
-            dpkg-divert --package halos-halpi-desktop-branding --remove --rename "${f}" || true
+            if dpkg-divert --list "${f}" | grep -q "by halos-halpi-desktop-branding$"; then
+                dpkg-divert --package halos-halpi-desktop-branding --remove --no-rename "${f}"
+            fi
+            if [ -e "${f}.upstream" ] && [ ! -e "${f}" ]; then
+                mv "${f}.upstream" "${f}"
+            fi
+        done
+        ;;
+    abort-install|disappear)
+        for n in 0 1; do
+            f="/etc/xdg/pcmanfm/default/desktop-items-${n}.conf"
+            rm -f "${f}"
+            if dpkg-divert --list "${f}" | grep -q "by halos-halpi-desktop-branding$"; then
+                dpkg-divert --package halos-halpi-desktop-branding --remove --no-rename "${f}"
+            fi
+            if [ -e "${f}.upstream" ] && [ ! -e "${f}" ]; then
+                mv "${f}.upstream" "${f}"
+            fi
         done
         ;;
 esac

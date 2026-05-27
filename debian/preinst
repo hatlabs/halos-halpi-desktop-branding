@@ -4,10 +4,43 @@ set -e
 # Divert rpd-common's pcmanfm desktop-items conffiles so this package can
 # own them at the canonical paths. Future rpd-common upgrades write to the
 # .upstream diverted paths instead of clobbering our defaults.
+#
+# Two install scenarios:
+#
+# 1. Fresh install (no sibling). canonical may hold rpd-common's file.
+#    We want it preserved at .upstream so a later `apt purge` of this
+#    package can restore it. dpkg-divert's `--rename` would normally do
+#    the move, but it skips the rename when `--package` matches the
+#    diverting package ("Ignoring request to rename file ... owned by
+#    diverting package"); see the message printed during install. So we
+#    move the file by hand, then add the diversion with `--no-rename`.
+#
+# 2. Sibling cleanup. The alternate provider of halos-desktop-wallpaper
+#    (halos-desktop-branding) has its diversion still recorded — either
+#    it is being replaced by us in a Conflict-driven swap (apt calls the
+#    outgoing package's postrm with just `$1=remove` and no `in-favour`,
+#    so the diversion isn't torn down there), or it was previously `apt
+#    remove`d without a `purge` and the diversion is orphaned. The
+#    sibling already moved rpd-common's file to .upstream on its own
+#    install, so .upstream already has the right content; skip the
+#    manual move and just transfer the diversion record.
+#
+# In both cases dpkg's unpack of this package overwrites the canonical
+# path with our shipped conffile via the per-package divert bypass.
+
+SIBLING=halos-desktop-branding
+PKG=halos-halpi-desktop-branding
+
 for n in 0 1; do
     f="/etc/xdg/pcmanfm/default/desktop-items-${n}.conf"
-    if ! dpkg-divert --list "${f}" | grep -q halos-halpi-desktop-branding; then
-        dpkg-divert --package halos-halpi-desktop-branding --add --rename \
+    if dpkg-divert --list "${f}" | grep -q "by ${SIBLING}$"; then
+        dpkg-divert --package "${SIBLING}" --remove --no-rename "${f}"
+    fi
+    if ! dpkg-divert --list "${f}" | grep -q "by ${PKG}$"; then
+        if [ -e "${f}" ] && [ ! -e "${f}.upstream" ]; then
+            mv "${f}" "${f}.upstream"
+        fi
+        dpkg-divert --package "${PKG}" --add --no-rename \
             --divert "${f}.upstream" "${f}"
     fi
 done
