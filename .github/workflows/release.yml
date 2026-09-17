@@ -1,16 +1,18 @@
-name: Release Published
+name: Publish stable release
 
 on:
   release:
     types: [published]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  publish:
-    uses: hatlabs/shared-workflows/.github/workflows/publish-stable.yml@main
+  apt-publish:
+    uses: halos-org/shared-workflows/.github/workflows/apt-publish.yml@v1.0.0-rc.1
     with:
+      channel: stable
+      apt-repository: hatlabs/apt.hatlabs.fi
       apt-distro: trixie
       apt-component: hatlabs
     secrets:
