@@ -53,7 +53,9 @@ Source files (`*.afphoto`, `*.png`) under `sources/` are tracked via Git LFS and
 
 ## CI / APT publishing
 
-CI uses `hatlabs/shared-workflows` (note: NOT `halos-org/shared-workflows`). The default APT publish target is `hatlabs/apt.hatlabs.fi`, which is correct for this repo since it lives in the `hatlabs` org.
+CI uses `halos-org/shared-workflows`, the single copy for both organisations, pinned to a release tag. There is no APT default: the callers pass `apt-repository: hatlabs/apt.hatlabs.fi` with `apt-distro: trixie` and `apt-component: hatlabs`.
+
+Branch protection requires the caller-owned `status` job in `pr.yml`, which needs every other job in that file. Add any new job to its `needs` list.
 
 ## Quick Start
 
